@@ -37,7 +37,7 @@ Shell scripts rely only on standard Unix utilities.
 1.	Clone or download the project starter repository.
 2.	Open a terminal and navigate into the project directory.
 3.	Install Python dependencies: `pip3 install pandas` (**Only if the pandas is not already installed on the env**)
-4.  Mkae shell scripts executable: `chmod +x *.sh`
+4.  Make shell scripts executable: `chmod +x *.sh`
 
 ## Testing
 
@@ -49,10 +49,10 @@ Instead, correctness is verified by running the pipeline and inspecting the outp
 
 You should manually verify that:
 
-- Files are moved from json_dump/ to raw/ with cleaned filenames
+- Files are copied from json_dump/ to raw/ with cleaned filenames (json_dump/ is unchanged)
 -	Invalid JSON files are routed to the invalid/ folder
 -	Cleaned JSON files are written to the clean/ folder
--	Original processed files are moved to the archive/ folder from clean/ folder after processing
+-	Original processed files are copied to the archive/ folder after processing
 -	A final CSV dataset is created in the dataset/ folder
 -	Log files are written to the logs/ folder with filename as current date
 
@@ -60,58 +60,30 @@ These checks reflect how many real-world data pipelines are validated in practic
 
 ## Project Instructions
 
-You are expected to complete the following deliverables:
+> **Do not manually move files between folders.** All file movement must be done through scripts.
 
-1.	Filename Organization
-    -   Implement logic in organize_files.sh to normalize filenames and move files into the raw/ folder.
-2.	Validation and Routing
-    -	Implement validate_json.py to determine whether a JSON file is valid.
-    -	Implement validate_and_route.sh to:
-    -	Validate files in raw/
-    -	Move invalid files to invalid/
-    -	Track valid files in valid_files.txt
-3.	Data Cleaning
-    -	Implement process_jsons.py to:
-    -	Normalize different JSON structures into a consistent format
-    -	Write cleaned JSON files to the clean/ folder
-    -	Archive original files after successful processing
-4.	Dataset Creation
-    -	Implement merge_to_dataset.py to:
-    -	Read all cleaned JSON files
-    -	Merge them into a single CSV dataset using pandas
-    -	Save the dataset to the dataset/ folder
-5.	Pipeline Execution
-    -	Implement run_pipeline.sh so the entire pipeline can be executed with a single command.
+> **Re-runnable by design:** Every phase clears its output directory before writing and uses `cp` instead of `mv`. The `json_dump/` directory is never modified. If you make a mistake in any phase, simply fix your code and run it again.
 
-⚠️ Do not manually move files between folders.
-All file movement must be done through scripts.
+For detailed step-by-step instructions for each phase, see the [Project Instructions](../Instructions.md) page.
 
+---
 
 ## Project Folder Structure and Pipeline Phases
 
--	json_dump/ — Phase 0: Incoming data
-Raw input files as received. Filenames and data may be inconsistent.
--	raw/ — Phase 1: Organized files
-Files after filename normalization. Contents are unchanged.
--	invalid/ — Phase 2: Rejected data
-Files that failed validation and are excluded from processing.
--	clean/ — Phase 3: Normalized data
-Files with standardized and consistent structure.
--	archive/ — Phase 4: Archived originals
-Original files that were successfully processed and archived.
--	dataset/ — Phase 5: Final dataset
-Aggregated dataset ready for analysis or machine learning.
--	logs/ — Cross-cutting: Pipeline logs
-Execution logs for all pipeline steps.
+- `json_dump/` — Phase 0: Incoming data. Raw input files as received. Never modified.
+- `raw/` — Phase 1: Organized files after filename normalization.
+- `invalid/` — Phase 2: Files that failed validation.
+- `clean/` — Phase 3: Files with standardized and consistent structure.
+- `archive/` — Phase 4: Copies of original files that were successfully processed.
+- `dataset/` — Phase 5: Aggregated dataset ready for analysis.
+- `logs/` — Cross-cutting: Execution logs for all pipeline steps.
 
 ## Built With
 
--	Python￼ – Core scripting language for validation and processing
--	pandas￼ – Used to merge cleaned data into a final dataset
--	Bash￼ – Used for file automation and orchestration
--	Unix shell utilities – Standard tools for file navigation and scripting
-
-Include all items used to build project.
+- Python – Core scripting language for validation and processing
+- pandas – Used to merge cleaned data into a final dataset
+- Bash – Used for file automation and orchestration
+- Unix shell utilities – Standard tools for file navigation and scripting
 
 ## License
 

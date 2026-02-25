@@ -4,7 +4,7 @@
 # Purpose:
 # - Normalize filenames
 # - Add a timestamp
-# - Move files into the raw/ folder
+# - Copy files into the raw/ folder
 #
 # NOTE:
 # This file contains starter code only.
@@ -30,6 +30,9 @@ mkdir -p "$LOGS_DIR"
 
 # Create raw directory if it doesn't exist
 mkdir -p "$RAW_DIR"
+
+# Clean up raw/ so the script is safely re-runnable
+rm -f "$RAW_DIR"/*.json 2>/dev/null
 
 # Ensure the loop does not fail if the folder is empty
 shopt -s nullglob
@@ -69,12 +72,10 @@ for src in "$DUMPS_DIR"/*; do
     # final_name="..."
 
     # TODO 6:
-    # Move the file into the raw/ directory
+    # Copy the file into the raw/ directory with the new name
     #
-    # mv "$src" "$RAW_DIR/$final_name"
-
     # TODO 7:
-    # Write a log entry for the file move.
+    # Write a log entry for the file copy.
     # Include:
     # - UTC timestamp
     # - source file path
