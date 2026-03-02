@@ -5,7 +5,7 @@
 # Purpose:
 # - Validate JSON files in the raw/ directory
 # - Track valid files
-# - Move invalid files to invalid/
+# - Copy invalid files to invalid/
 #
 # NOTE:
 # This file contains starter code only.
@@ -19,6 +19,9 @@ VALID_FILE_LIST="valid_files.txt"
 
 # Create required directories
 mkdir -p "$INVALID_DIR" "logs"
+
+# Clean up invalid/ so the script is safely re-runnable
+rm -f "$INVALID_DIR"/*.json 2>/dev/null
 
 LOGS_DIR="logs"
 TODAY="$(date -u +"%Y-%m-%d")"
@@ -49,7 +52,7 @@ for file in "$RAW_DIR"/*.json; do
     # - Write a log entry indicating the file is valid
     #
     # Otherwise:
-    # - Move the file to INVALID_DIR
-    # - Write a log entry indicating the file was moved
+    # - Copy the file to INVALID_DIR
+    # - Write a log entry indicating the file was copied to invalid
     #
 done

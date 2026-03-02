@@ -35,6 +35,14 @@ VALID_FILES = "valid_files.txt"
 os.makedirs(CLEAN_DIR, exist_ok=True)
 os.makedirs(ARCHIVE_DIR, exist_ok=True)
 
+# Clean up clean/ and archive/ so the script is safely re-runnable
+for _f in os.listdir(CLEAN_DIR):
+    if _f.endswith(".json"):
+        os.remove(os.path.join(CLEAN_DIR, _f))
+for _f in os.listdir(ARCHIVE_DIR):
+    if _f.endswith(".json"):
+        os.remove(os.path.join(ARCHIVE_DIR, _f))
+
 # ---------- load valid file list ----------
 
 # TODO:
@@ -133,7 +141,7 @@ def normalize_json(data):
     # log("...")
 
     # TODO:
-    # Move the original file to the archive/ directory.
+    # Copy the original file to the archive/ directory.
     #
     # archive_path = ...
 
