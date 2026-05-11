@@ -27,32 +27,23 @@ LOGS_DIR="logs"
 TODAY="$(date -u +"%Y-%m-%d")"
 log_file="$LOGS_DIR/$TODAY.log"
 
-# TODO:
-# Clear the contents of VALID_FILE_LIST so it starts empty.
-#
-# > "$VALID_FILE_LIST"
+> "$VALID_FILE_LIST"
+
+shopt -s nullglob
 
 for file in "$RAW_DIR"/*.json; do
-    # TODO:
-    # Skip the loop iteration if the file does not exist.
+    [[ -f "$file" ]] || continue
 
-    # TODO:
-    # Write a log entry indicating validation is starting for this file.
-    # Include a UTC timestamp and the file path.
-    
-    # TODO:
-    # Run the validate_json.py script on the file.
-    
-    # TODO:
-    # Capture the exit status of the validation script.
-    
-    # TODO:
-    # If the status is 0:
-    # - Append the file path to VALID_FILE_LIST
-    # - Write a log entry indicating the file is valid
-    #
-    # Otherwise:
-    # - Copy the file to INVALID_DIR
-    # - Write a log entry indicating the file was copied to invalid
-    #
+    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] validate_and_route.sh: validating '$file'" >> "$log_file"
+
+    python3 validate_json.py "$file"
+    status=$?
+
+    if [[ "$status" -eq 0 ]]; then
+        echo "$file" >> "$VALID_FILE_LIST"
+        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] validate_and_route.sh: valid '$file'" >> "$log_file"
+    else
+        cp "$file" "$INVALID_DIR/"
+        echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] validate_and_route.sh: invalid, copied to '$INVALID_DIR/$(basename "$file")'" >> "$log_file"
+    fi
 done

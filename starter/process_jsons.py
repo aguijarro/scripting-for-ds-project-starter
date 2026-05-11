@@ -11,20 +11,22 @@ TODAY = datetime.datetime.utcnow().strftime("%Y-%m-%d")
 LOG_FILE = os.path.join(LOGS_DIR, f"{TODAY}.log")
 os.makedirs(LOGS_DIR, exist_ok=True)
 
+
 def log(message):
     """
-    TODO:
-    Implement this function to write a timestamped log message
-    to the daily log file.
+    Write a timestamped log message to the daily log file.
 
     Format:
     YYYY-MM-DDTHH:MM:SSZ - process_jsons.py: <message>
     """
-    # TODO:
-    # 1. Generate a UTC timestamp
-    # 2. Open LOG_FILE in append mode
-    # 3. Write the formatted log message
-    pass
+    ts = datetime.datetime.now(datetime.timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+    line = f"{ts} - process_jsons.py: {message}\n"
+    with open(LOG_FILE, "a", encoding="utf-8") as fh:
+        fh.write(line)
+
+
 # -----------------------------
 
 RAW_DIR = "raw"
@@ -45,113 +47,95 @@ for _f in os.listdir(ARCHIVE_DIR):
 
 # ---------- load valid file list ----------
 
-# TODO:
-# Check if VALID_FILES exists.
-# If it does not exist:
-# - Write a log entry
-# - Exit the script with a non-zero status
-#
+if not os.path.isfile(VALID_FILES):
+    log(f"missing valid file list: {VALID_FILES}")
+    raise SystemExit(1)
 
+with open(VALID_FILES, "r", encoding="utf-8") as fh:
+    files = [line.strip() for line in fh if line.strip()]
 
-# TODO:
-# Open VALID_FILES and read all non-empty lines into a list called `files`.
-#
-
-
-# TODO:
-# Write a log entry indicating how many files will be processed.
-#
-# log("...")
+log(f"processing {len(files)} file(s) from {VALID_FILES}")
 
 # ---------- normalize one JSON ----------
+
+
 def normalize_json(data):
     """
     Normalize a single JSON record into a consistent structure.
     """
 
-    cleaned = {}
+    product = data.get("product")
+    if not isinstance(product, dict):
+        product = {}
 
-    # TODO:
-    # Extract product_id.
-    # Use the top-level key if present,
-    # otherwise look inside data["product"]["id"].
-    #
+    product_id = data.get("product_id", product.get("id"))
+    name = data.get("name", product.get("name"))
 
-    # TODO:
-    # Extract name.
-    # Use the top-level key if present,
-    # otherwise look inside data["product"]["name"].
-    #
+    category = data.get("category")
+    if category is None:
+        category = "unknown"
 
-    # TODO:
-    # Extract category.
-    # Use "unknown" if not present.
-    #
+    price_raw = data.get("price")
+    try:
+        price = float(price_raw)
+    except (TypeError, ValueError):
+        price = 0.0
 
-    # TODO:
-    # Extract price and convert to float.
-    # If conversion fails, use 0.0.
-    #
+    metadata = data.get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
 
-    # TODO:
-    # Extract metadata fields:
-    # - color
-    # - stock (default to 0)
-    #
+    color = metadata.get("color")
 
+    stock_raw = metadata.get("stock", 0)
+    try:
+        stock = int(float(stock_raw))
+    except (TypeError, ValueError):
+        stock = 0
 
-    # TODO:
-    # Extract created_at.
-    # Use metadata["created_at"] if present,
-    # otherwise use metadata["created"].
-    #
+    created_at = metadata.get("created_at")
+    if created_at is None:
+        created_at = metadata.get("created")
 
-    return cleaned
+    return {
+        "product_id": product_id,
+        "name": name,
+        "category": category,
+        "price": price,
+        "color": color,
+        "stock": stock,
+        "created_at": created_at,
+    }
+
 
 # ---------- process each file ----------
 
-# TODO:
-# Loop over each file path in `files`.
-#
-# for file_path in files:
+for file_path in files:
+    filename = os.path.basename(file_path)
 
-    # TODO:
-    # Extract the filename from the file path.
-    #
-    # filename = ...
+    try:
+        with open(file_path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, json.JSONDecodeError) as exc:
+        log(f"skipping {file_path}: {exc}")
+        continue
 
-    # TODO:
-    # Open and load the JSON file.
-    # If reading fails:
-    # - Write a log entry
-    # - Skip to the next file
+    if not isinstance(data, dict):
+        log(f"skipping {file_path}: root JSON value is not an object")
+        continue
 
-    # TODO:
-    # Normalize the JSON data.
-    #
-    # cleaned_data = ...
+    cleaned_data = normalize_json(data)
 
-    # TODO:
-    # Write the cleaned JSON to the clean/ directory with indent=2.
+    clean_path = os.path.join(CLEAN_DIR, filename)
+    with open(clean_path, "w", encoding="utf-8") as fh:
+        json.dump(cleaned_data, fh, indent=2)
+        fh.write("\n")
 
+    log(f"wrote cleaned JSON: {clean_path}")
 
-    # TODO:
-    # Write a log entry indicating the cleaned file was written.
-    #
-    # log("...")
+    archive_path = os.path.join(ARCHIVE_DIR, filename)
+    shutil.copy2(file_path, archive_path)
 
-    # TODO:
-    # Copy the original file to the archive/ directory.
-    #
-    # archive_path = ...
+    log(f"archived: {file_path} -> {archive_path}")
 
-
-    # TODO:
-    # Write a log entry indicating the file was archived.
-    #
-    # log("...")
-
-# TODO:
-# Write a log entry indicating that processing is complete.
-#
-# log("Processing complete")
+log("Processing complete")

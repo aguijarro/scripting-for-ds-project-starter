@@ -21,18 +21,13 @@ TODAY="$(date -u +"%Y-%m-%d")"
 log_file="$LOGS_DIR/$TODAY.log"
 mkdir -p "$LOGS_DIR"
 
-# TODO:
-# Write a log entry indicating that organize_files.sh has started.
-# Include a UTC timestamp.
-#
-# echo "..." >> "$log_file"
-# ----------------------------
+echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] organize_files.sh started" >> "$log_file"
 
 # Create raw directory if it doesn't exist
 mkdir -p "$RAW_DIR"
 
-# Clean up raw/ so the script is safely re-runnable
-rm -f "$RAW_DIR"/*.json 2>/dev/null
+# Clean up raw/ so the script is safely re-runnable (clear entire output dir)
+rm -f "$RAW_DIR"/* 2>/dev/null
 
 # Ensure the loop does not fail if the folder is empty
 shopt -s nullglob
@@ -41,48 +36,24 @@ for src in "$DUMPS_DIR"/*; do
 
     base="$(basename "$src")"
 
-    # TODO 1:
-    # Convert the filename to lowercase
-    # Hint: look up the `tr` command
-    #
-    # newname="..."
+    # Skip documentation; remaining entries are the 42 product data files.
+    if [[ "$base" == "README.md" ]]; then
+        continue
+    fi
 
-    # TODO 2:
-    # Replace spaces and hyphens with underscores
-    # Hint: look up the `sed` command
-    #
-    # newname="..."
+    newname="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+    newname="$(printf '%s' "$newname" | sed 's/-/_/g; s/ /_/g')"
 
-    # TODO 3:
-    # Remove the file extension
-    # (assume files may have inconsistent extensions)
-    #
-    # name_without_ext="..."
+    name_without_ext="${newname%.*}"
 
-    # TODO 4:
-    # Generate a UTC timestamp in the format:
-    # YYYYMMDDTHHMMSSZ
-    #
-    # ts="..."
+    ts="$(date -u +"%Y%m%dT%H%M%SZ")"
 
-    # TODO 5:
-    # Construct the final filename using:
-    # <clean_name>_<timestamp>.json
-    #
-    # final_name="..."
+    final_name="${name_without_ext}_${ts}.json"
 
-    # TODO 6:
-    # Copy the file into the raw/ directory with the new name
-    #
-    # TODO 7:
-    # Write a log entry for the file copy.
-    # Include:
-    # - UTC timestamp
-    # - source file path
-    # - destination file path
-    
+    cp "$src" "$RAW_DIR/$final_name"
+
+    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] copied source='$src' destination='$RAW_DIR/$final_name'" >> "$log_file"
+
 done
 
-# TODO:
-# Write a log entry indicating that organize_files.sh has finished.
-# Include a UTC timestamp.
+echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] organize_files.sh finished" >> "$log_file"
