@@ -1,4 +1,4 @@
-!/bin/bash
+#!/usr/bin/env bash
 #
 # run_pipeline.sh
 #
@@ -9,47 +9,22 @@
 # This file contains starter code only.
 # You are expected to complete the TODO sections.
 
-# TODO:
-# Print a message indicating that the pipeline has started.
-#
-# echo "..."
+set -euo pipefail
 
-# TODO:
-# Print a message indicating that the filename organization step is starting.
-#
-# echo "..."
+cd "$(dirname "$0")"
 
-# TODO:
-# Run the organize_files.sh script.
-#
+echo "Pipeline started."
 
-# TODO:
-# Print a message indicating that the validation step is starting.
-#
-# echo "..."
+echo "Starting filename organization (organize_files.sh)..."
+./organize_files.sh
 
-# TODO:
-# Run the validate_and_route.sh script.
-#
+echo "Starting validation and routing (validate_and_route.sh)..."
+./validate_and_route.sh
 
-# TODO:
-# Print a message indicating that the JSON processing step is starting.
-#
-# echo "..."
+echo "Starting JSON processing (process_jsons.py)..."
+python3 process_jsons.py
 
-# TODO:
-# Run the process_jsons.py script.
+echo "Starting dataset merge (merge_to_dataset.py)..."
+python3 merge_to_dataset.py
 
-
-# TODO:
-# Print a message indicating that dataset merging is starting.
-#
-# echo "..."
-
-# TODO:
-# Run the merge_to_dataset.py script.
-
-# TODO:
-# Print a message indicating that the pipeline has completed successfully.
-#
-# echo "..."
+echo "Pipeline completed successfully."
