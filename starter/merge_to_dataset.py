@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 import pandas as pd
 import datetime
 
@@ -11,86 +12,72 @@ TODAY = datetime.datetime.utcnow().strftime("%Y-%m-%d")
 LOG_FILE = os.path.join(LOGS_DIR, f"{TODAY}.log")
 os.makedirs(LOGS_DIR, exist_ok=True)
 
+
 def log(message):
     """
-    TODO:
-    Implement this function to write a timestamped log message
-    to the daily log file.
+    Write a timestamped log message to the daily log file.
 
     The log format should be:
     YYYY-MM-DDTHH:MM:SSZ - merge_to_dataset.py: <message>
     """
-    # TODO:
-    # 1. Generate a UTC timestamp
-    # 2. Open LOG_FILE in append mode
-    # 3. Write the formatted log message
-    pass
+    ts = datetime.datetime.now(datetime.timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+    line = f"{ts} - merge_to_dataset.py: {message}\n"
+    with open(LOG_FILE, "a", encoding="utf-8") as fh:
+        fh.write(line)
+
+
 # -----------------------------
 
 CLEAN_DIR = "clean"
 DATASET_DIR = "dataset"
 OUTPUT_FILE = os.path.join(DATASET_DIR, "clean_products.csv")
 
-# Create dataset directory if it doesn't exist
+COLUMNS = [
+    "product_id",
+    "name",
+    "category",
+    "price",
+    "color",
+    "stock",
+    "created_at",
+]
+
+# Create dataset directory if it does not exist
 os.makedirs(DATASET_DIR, exist_ok=True)
 
 rows = []
 
-# TODO:
-# Write a log entry indicating that dataset merging has started.
-#
-# log("Starting dataset merge")
+log("Starting dataset merge")
 
-for filename in os.listdir(CLEAN_DIR):
+for filename in sorted(os.listdir(CLEAN_DIR)):
     if not filename.endswith(".json"):
         continue
 
     file_path = os.path.join(CLEAN_DIR, filename)
 
     try:
-        # TODO:
-        # Open the JSON file and load its contents
-        # Append the loaded dictionary to the `rows` list
-        
+        with open(file_path, "r", encoding="utf-8") as fh:
+            row = json.load(fh)
+        rows.append(row)
+        log(f"loaded: {file_path}")
+    except Exception as exc:
+        log(f"failed to load {file_path}: {exc}")
 
-
-        # TODO:
-        # Write a log entry indicating the file was successfully loaded.
-        
-
-        pass
-    except Exception as e:
-        # TODO:
-        # Write a log entry indicating the file failed to load.
-        #
-        pass
-
-# TODO:
-# If no rows were loaded, log a message and exit the script with a non-zero status.
-#
+if not rows:
+    log("no rows loaded; aborting merge")
+    sys.exit(1)
 
 # ---------- pandas aggregation ----------
 
-# TODO:
-# Create a pandas DataFrame from the `rows` list.
-#
-# df = ...
+df = pd.DataFrame(rows)
+df = df.reindex(columns=COLUMNS)
 
-# TODO:
-# Perform very light cleanup:
-# - Ensure `price` is a float
-# - Ensure `stock` is an integer (fill missing values with 0)
-#
-# df["price"] = ...
-# df["stock"] = ...
+df["price"] = pd.to_numeric(df["price"], errors="coerce").fillna(0.0).astype("float64")
+df["stock"] = pd.to_numeric(df["stock"], errors="coerce").fillna(0).astype("int64")
 
-# TODO:
-# Write the DataFrame to OUTPUT_FILE as a CSV file.
-# Do not include the index.
+df.to_csv(OUTPUT_FILE, index=False)
 
-# TODO:
-# Write a log entry indicating that the dataset was written successfully.
-
-# TODO:
-# Write a log entry indicating that the merge process is complete.
-#
+log(f"dataset written successfully: {OUTPUT_FILE} ({len(df)} row(s))")
+log("merge process is complete")
