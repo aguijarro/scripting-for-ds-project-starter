@@ -30,6 +30,35 @@ def log(message):
 # -----------------------------
 
 
+def get_merged_view(data):
+    """Merge top-level fields with nested product fields for validation."""
+    merged = dict(data)
+    product = data.get("product")
+    if isinstance(product, dict):
+        for key, value in product.items():
+            if key not in merged:
+                merged[key] = value
+    return merged
+
+
+def has_required_fields(data):
+    """Return True when all required product fields are present."""
+    product_id = data.get("product_id", data.get("id"))
+    name = data.get("name")
+    price = data.get("price")
+    metadata = data.get("metadata")
+
+    if product_id is None or name is None or price is None:
+        return False
+    if not isinstance(metadata, dict):
+        return False
+    if "color" not in metadata or "stock" not in metadata:
+        return False
+    if "created_at" not in metadata and "created" not in metadata:
+        return False
+    return True
+
+
 def main():
     if len(sys.argv) != 2:
         log("expected exactly one command-line argument (file path)")
@@ -58,37 +87,8 @@ def main():
         log(f"JSON root must be an object (dict): {path}")
         sys.exit(1)
 
-    product = data.get("product")
-    if not isinstance(product, dict):
-        product = {}
-
-    product_id = data.get("product_id", product.get("id"))
-    name = data.get("name", product.get("name"))
-    price = data.get("price")
-    metadata = data.get("metadata")
-
-    if product_id is None:
-        log(f"missing product identifier (product_id or product.id): {path}")
-        sys.exit(1)
-    if name is None:
-        log(f"missing product name (name or product.name): {path}")
-        sys.exit(1)
-    if price is None:
-        log(f"missing price: {path}")
-        sys.exit(1)
-    if not isinstance(metadata, dict):
-        log(f"missing or invalid metadata object: {path}")
-        sys.exit(1)
-    if "color" not in metadata:
-        log(f"missing required field metadata.color: {path}")
-        sys.exit(1)
-    if "stock" not in metadata:
-        log(f"missing required field metadata.stock: {path}")
-        sys.exit(1)
-    if "created_at" not in metadata and "created" not in metadata:
-        log(
-            f"missing required timestamp metadata.created_at or metadata.created: {path}"
-        )
+    if not has_required_fields(get_merged_view(data)):
+        log(f"missing required fields: {path}")
         sys.exit(1)
 
     log(f"valid JSON: {path}")
