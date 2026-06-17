@@ -33,16 +33,17 @@ rm -f "$RAW_DIR"/* 2>/dev/null
 shopt -s nullglob
 
 for src in "$DUMPS_DIR"/*; do
+    [ -f "$src" ] || continue
+
+    case "${src,,}" in
+        *.json) ;;
+        *) continue ;;
+    esac
 
     base="$(basename "$src")"
 
-    # Skip documentation; remaining entries are the 42 product data files.
-    if [[ "$base" == "README.md" ]]; then
-        continue
-    fi
-
-    newname="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
-    newname="$(printf '%s' "$newname" | sed 's/-/_/g; s/ /_/g')"
+    newname="$(echo "$base" | tr '[:upper:]' '[:lower:]')"
+    newname="$(echo "$newname" | sed 's/[ -]/_/g')"
 
     name_without_ext="${newname%.*}"
 
