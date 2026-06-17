@@ -13,18 +13,29 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-echo "Pipeline started."
+LOGS_DIR="logs"
+TODAY="$(date -u +"%Y-%m-%d")"
+log_file="$LOGS_DIR/$TODAY.log"
+mkdir -p "$LOGS_DIR"
 
-echo "Starting filename organization (organize_files.sh)..."
+log() {
+    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - run_pipeline.sh: $1" >> "$log_file"
+}
+
+trap 'log "pipeline failed"' ERR
+
+log "pipeline started"
+
+log "running organize_files.sh"
 ./organize_files.sh
 
-echo "Starting validation and routing (validate_and_route.sh)..."
+log "running validate_and_route.sh"
 ./validate_and_route.sh
 
-echo "Starting JSON processing (process_jsons.py)..."
+log "running process_jsons.py"
 python3 process_jsons.py
 
-echo "Starting dataset merge (merge_to_dataset.py)..."
+log "running merge_to_dataset.py"
 python3 merge_to_dataset.py
 
-echo "Pipeline completed successfully."
+log "pipeline completed successfully"

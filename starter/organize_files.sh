@@ -21,7 +21,7 @@ TODAY="$(date -u +"%Y-%m-%d")"
 log_file="$LOGS_DIR/$TODAY.log"
 mkdir -p "$LOGS_DIR"
 
-echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] organize_files.sh started" >> "$log_file"
+echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - organize_files.sh: started" >> "$log_file"
 
 # Create raw directory if it doesn't exist
 mkdir -p "$RAW_DIR"
@@ -55,8 +55,8 @@ for src in "$DUMPS_DIR"/*; do
 
     cp "$src" "$RAW_DIR/$final_name"
 
-    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] copied source='$src' destination='$RAW_DIR/$final_name'" >> "$log_file"
+    echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - organize_files.sh: copied $src -> $RAW_DIR/$final_name" >> "$log_file"
 
 done
 
-echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] organize_files.sh finished" >> "$log_file"
+echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - organize_files.sh: finished" >> "$log_file"
