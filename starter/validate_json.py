@@ -45,10 +45,11 @@ def has_required_fields(data):
     """Return True when all required product fields are present."""
     product_id = data.get("product_id", data.get("id"))
     name = data.get("name")
+    category = data.get("category")
     price = data.get("price")
     metadata = data.get("metadata")
 
-    if product_id is None or name is None or price is None:
+    if product_id is None or name is None or category is None or price is None:
         return False
     if not isinstance(metadata, dict):
         return False
