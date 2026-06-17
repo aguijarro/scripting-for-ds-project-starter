@@ -35,15 +35,17 @@ shopt -s nullglob
 for src in "$DUMPS_DIR"/*; do
     [ -f "$src" ] || continue
 
-    case "${src,,}" in
-        *.json) ;;
+    base="$(basename "$src")"
+    base_lower="${base,,}"
+
+    # Product dump files use a product-style name (any extension); skip support files.
+    case "$base_lower" in
+        readme.md) continue ;;
+        product*) ;;
         *) continue ;;
     esac
 
-    base="$(basename "$src")"
-
-    newname="$(echo "$base" | tr '[:upper:]' '[:lower:]')"
-    newname="$(echo "$newname" | sed 's/[ -]/_/g')"
+    newname="$(echo "$base_lower" | sed 's/[ -]/_/g')"
 
     name_without_ext="${newname%.*}"
 
